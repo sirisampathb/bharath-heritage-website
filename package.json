@@ -1,0 +1,8 @@
+{
+  "name": "bharath-heritage-website",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd Asset-Manager && npm install && npx vite build"
+  }
+}
