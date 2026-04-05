@@ -49,10 +49,30 @@ export async function registerRoutes(
   });
 
   app.get("/api/auth/me", async (req, res) => {
-    // For now, since we don't have real session middleware, 
-    // we'll return a 401 to force a login redirect if no session is active.
-    // In a full implementation, we'd check req.headers.authorization
-    res.status(401).json({ error: "Unauthorized" });
+    try {
+      // Look for token in Authorization header (Bearer token) or custom header
+      const authHeader = req.headers.authorization;
+      const xAuthToken = req.headers["x-auth-token"];
+      
+      const token = authHeader?.startsWith("Bearer ") 
+        ? authHeader.substring(7) 
+        : (xAuthToken as string);
+
+      if (!token || !token.startsWith("mock-token-")) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const userId = token.replace("mock-token-", "");
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ error: "Auth check failed" });
+    }
   });
 
   app.post("/api/auth/logout", async (_req, res) => {
