@@ -3,7 +3,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
-const app = express();
+export const app = express();
 const httpServer = createServer(app);
 
 declare module "http" {
@@ -61,7 +61,8 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+// ✅ Export initialization logic for Vercel and Local Dev
+export const initServer = async () => {
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
@@ -77,17 +78,23 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && !process.env.VERCEL) {
     serveStatic(app);
-  } else {
+  } else if (process.env.NODE_ENV !== "production") {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
 
-  // ✅ Windows-safe server start
-  const port = parseInt(process.env.PORT || "5000", 10);
+  return { httpServer, app };
+};
 
-  httpServer.listen(port, "localhost", () => {
-    log(`Server running at http://localhost:${port}`);
-  });
-})();
+// Only start the server if this file is run directly (not as a module)
+if (import.meta.url === `file://${process.argv[1]}` || !process.env.VERCEL) {
+  (async () => {
+    const { httpServer } = await initServer();
+    const port = parseInt(process.env.PORT || "5000", 10);
+    httpServer.listen(port, "0.0.0.0", () => {
+      log(`Server running at http://localhost:${port}`);
+    });
+  })();
+}
