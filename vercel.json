@@ -2,7 +2,7 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
-  "installCommand": "npm install --include=dev",
+  "installCommand": "npm install --include=dev --legacy-peer-deps",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
