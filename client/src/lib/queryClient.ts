@@ -1,6 +1,7 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 const apiBase = import.meta.env.VITE_API_URL ?? "";
+console.log("API Base URL:", apiBase || "(relative)");
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
